@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "HQa1nb4mqErCwyuY/Q2ALqqtyPCIhF2J7xGDWaTTz23DHO2gBfS4XaTRt3hUOoQu1RcdmFWXInmBCJ3o73Mk5A==",
+  "dgSpecHash": "47qG0gtchsriTXQGx+NznfzE8p33Fl3wqZznbRyi6z7p2vFCZGJ/lNoLbOedJHr76zsdg3q+ViLx7GlUg46Nug==",
   "success": true,
   "projectFilePath": "C:\\Users\\FShop\\Documents\\LTM_Final_ChatApplication\\Final_ChatApplication\\ChatClient\\ChatClient.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\FShop\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
   "logs": []
 }
