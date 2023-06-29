@@ -18,3 +18,5 @@ C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatCli
 C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatClient\obj\Debug\net5.0-windows\ChatClient.genruntimeconfig.cache
 C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatClient\obj\Debug\net5.0-windows\ChatClient.RegistrationForm.resources
 C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatClient\bin\Debug\net5.0-windows\Newtonsoft.Json.dll
+C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatClient\obj\Debug\net5.0-windows\ChatClient.ChatApplication.resources
+C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatClient\obj\Debug\net5.0-windows\ChatClient.csproj.CopyComplete

@@ -25,23 +25,22 @@ namespace ChatClient
             InitializeComponent();
         }
 
-        // Tạo một đối tượng Socket
-        Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
         IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
         int port = 8181;
 
-        // Chuyển đổi đối tượng sang mảng byte
-        public byte[] ObjectToByteArray(object obj)
+        string receiveData(Socket clientSocket)
         {
-            if (obj == null)
-                return null;
-            BinaryFormatter bf = new BinaryFormatter();
-            using (MemoryStream ms = new MemoryStream())
-            {
-                bf.Serialize(ms, obj);
-                return ms.ToArray();
-            }
+            byte[] buffer = new byte[clientSocket.ReceiveBufferSize];
+            int bytesReceived = clientSocket.Receive(buffer);
+            string data = Encoding.ASCII.GetString(buffer, 0, bytesReceived);
+            return data;
+        }
+
+        void sendData(Socket clientSocket, string data)
+        {
+            byte[] buffer;
+            buffer = Encoding.ASCII.GetBytes(data);
+            clientSocket.Send(buffer);
         }
 
         private void RegistrationButton_Click(object sender, EventArgs e)
@@ -49,10 +48,13 @@ namespace ChatClient
             // Kiểm tra người dùng xác thực đúng mật khẩu hay không
             if(PasswordTbox.Text != ConfirmPasswordTbox.Text)
             {
-                MessageBox.Show("Error! Confirm password not equal Password!");
+                MessageBox.Show("Confirm password not match Password!");
                 ConfirmPasswordTbox.Text = "";
                 return;
             }
+
+            // Tạo một đối tượng Socket
+            Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             // Kết nối đến máy chủ
             clientSocket.Connect(ipAddress, port);
@@ -64,29 +66,24 @@ namespace ChatClient
                 Password = PasswordTbox.Text,
                 DisplayName = DisplayNameTbox.Text,
                 Email = EmailTbox.Text,
-                Id = 0
             };
 
-            // Gửi tín hiệu cho server biết đây là đăng kí
-            byte[] dataByte;
-            string signal = "Flag=2";
-            dataByte = Encoding.ASCII.GetBytes(signal);
-            clientSocket.Send(dataByte);
-
             // Gửi Form đăng kí đến server
-            byte[] userData = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(user));
-            clientSocket.Send(userData);
 
-
-
+            string userData = "0x001|" + JsonConvert.SerializeObject(user);
+            sendData(clientSocket, userData);
 
             // Nhận phản hồi đã đăng kí thành công hay không từ server
-            byte[] buffer = new byte[clientSocket.ReceiveBufferSize];
-            int bytesReceived = clientSocket.Receive(buffer);
-            string response = Encoding.ASCII.GetString(buffer, 0, bytesReceived);
-            if(response == "Success")
+            string response = receiveData(clientSocket);
+            if (response == "0x001")
             {
                 MessageBox.Show("Register Successfull!");
+                LoginForm login_form = new LoginForm();
+                this.Close();
+                login_form.Show();
+            } else if (response == "0x006") {
+                MessageBox.Show("Username exist!");
+                UsernameTbox.Text = "";
             } else
             {
                 MessageBox.Show("Register Unseccessfull!");

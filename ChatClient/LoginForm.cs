@@ -20,12 +20,24 @@ namespace ChatClient
             InitializeComponent();
         }
 
-        // Tạo một đối tượng Socket
-        Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        
         // Thiết lập địa chỉ Ip và Port để kết nối đến server
         IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
         int port = 8181;
+
+        string receiveData(Socket clientSocket)
+        {
+            byte[] buffer = new byte[clientSocket.ReceiveBufferSize];
+            int bytesReceived = clientSocket.Receive(buffer);
+            string data = Encoding.ASCII.GetString(buffer, 0, bytesReceived);
+            return data;
+        }
+
+        void sendData(Socket clientSocket, string data)
+        {
+            byte[] buffer;
+            buffer = Encoding.ASCII.GetBytes(data);
+            clientSocket.Send(buffer);
+        }
 
         private void RegisterButton_Click(object sender, EventArgs e)
         {
@@ -39,44 +51,46 @@ namespace ChatClient
             // Kiểm tra xem người dùng có để trống Username hay Password
             if(UsernameTbox.Text == "" || PasswordTbox.Text == "")
             {
-                MessageBox.Show("Error! Fill Username and Password!");
+                MessageBox.Show("Please fill Username and Password!");
                 UsernameTbox.Text = "";
                 PasswordTbox.Text = "";
                 return;
             }
 
+            // Tạo một đối tượng Socket
+            Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
             // Kết nối đến máy chủ
             clientSocket.Connect(ipAddress, port);
 
             // Gửi tín hiệu cho server biết đây là xác thực
-            byte[] dataByte;
-            string signal = "Flag=1";
-            dataByte = Encoding.ASCII.GetBytes(signal);
-            clientSocket.Send(dataByte);
-            Thread.Sleep(1000);
-            // Gửi form đăng nhập lên server để xác thực
-            string formLogin ="Username=" + UsernameTbox.Text + ",Password=" + PasswordTbox.Text;
-            dataByte = Encoding.ASCII.GetBytes(formLogin);
-            clientSocket.Send(dataByte);
+            string formLogin ="0x000|Username=" + UsernameTbox.Text + "/Password=" + PasswordTbox.Text;
+            sendData(clientSocket, formLogin);
+
 
             // Nhận phản hồi từ server
-            while (clientSocket.Connected && !clientSocket.Poll(0, SelectMode.SelectRead))
+            string data = receiveData(clientSocket);
+            string response = data.Substring(0, 5);
+            string name = data.Substring(5, data.Length - 5);
+
+            if (response == "0x000")
             {
-                byte[] buffer = new byte[1024];
-                int bytesReceived = clientSocket.Receive(buffer);
-                string response = Encoding.ASCII.GetString(buffer, 0, bytesReceived);
+                MessageBox.Show("Login Successfully!");
+                ChatApplication chat = new ChatApplication(clientSocket, UsernameTbox.Text, name);
+                chat.Show();
+                this.Hide();
+            } else if(response == "0x003")
+            {
+                MessageBox.Show("Username not exist!");
+                clientSocket.Close();
 
-                if (response == "Authenticated")
-                {
-                    MessageBox.Show("Success!");
-                    return;
-                }
             }
+            else if(response == "0x004")
+             {
+                MessageBox.Show("Password is wrong!");
+                clientSocket.Close();
 
-            MessageBox.Show("Username or Password wrong!");
-            clientSocket.Close();
-
-
+            }
         }
     }
 }

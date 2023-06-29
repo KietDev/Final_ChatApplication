@@ -21,3 +21,5 @@ C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatSer
 C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatServer\obj\Debug\net5.0\ref\ChatServer.dll
 C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatServer\obj\Debug\net5.0\ChatServer.pdb
 C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatServer\obj\Debug\net5.0\ChatServer.genruntimeconfig.cache
+C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatServer\obj\Debug\net5.0\ChatServer.csproj.CopyComplete
+C:\Users\FShop\Documents\LTM_Final_ChatApplication\Final_ChatApplication\ChatServer\bin\Debug\net5.0\Firebase.Storage.dll
