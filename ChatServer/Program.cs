@@ -29,14 +29,14 @@ namespace ChatServer
         {
             byte[] buffer = new byte[handler.ReceiveBufferSize];
             int bytesReceived = handler.Receive(buffer);
-            string data = Encoding.ASCII.GetString(buffer, 0, bytesReceived);
+            string data = Encoding.UTF8.GetString(buffer, 0, bytesReceived);
             return data;
         }
 
         static void sendData(Socket handler, string data)
         {
             byte[] buffer;
-            buffer = Encoding.ASCII.GetBytes(data);
+            buffer = Encoding.UTF8.GetBytes(data);
             handler.Send(buffer);
         }
 
@@ -264,9 +264,34 @@ namespace ChatServer
                 {
                     byte[] buffer = new byte[handler.ReceiveBufferSize];
                     int bytesReceived = handler.Receive(buffer);
+                    string user_send = "";
+                    foreach (KeyValuePair<string, Socket> ct in clientSockets)
+                    {
+                        if (handler == ct.Value)
+                        {
+                            string[] usr = ct.Key.Split('/');
+                            user_send = usr[1];
+                            break;
+                        }
+                    }
                     if (input[1].Substring(0, 6) == "public")
                     {
+                        
                         string[] dt = input[1].Split(',');
+
+                        Message mess = new Message()
+                        {
+                            Sender = user_send,
+                            Receiver = "public",
+                            DateSend = dt[1],
+                            Text = "Icon"
+                        };
+
+                        string id_mess = mess.DateSend.Replace("/", "");
+                        id_mess = id_mess.Replace(":", "");
+                        id_mess = id_mess.Replace(" ", "");
+                        SetResponse set = client.Set(@"Messages/" + mess.Sender + "/" + id_mess, mess);
+
                         foreach (KeyValuePair<string, Socket> ct in clientSockets)
                         {
                             if (handler == ct.Value)
@@ -275,18 +300,35 @@ namespace ChatServer
                             }
                             string[] usr = ct.Key.Split('/');
                             sendData(ct.Value, "0x011|" + usr[1] + "," + dt[0] + "," + dt[1]);
+                            set = client.Set(@"Messages/" + usr[0] + "/" + id_mess + "/", mess);
+
                             Thread.Sleep(1000);
                             ct.Value.Send(buffer);
                         }
                     } else
                     {
                         string[] dt = input[1].Split(',');
+                        Message mess = new Message()
+                        {
+                            Sender = user_send,
+                            Receiver = dt[0],
+                            DateSend = dt[2],
+                            Text = "Icon"
+                        };
+
+                        string id_mess = mess.DateSend.Replace("/", "");
+                        id_mess = id_mess.Replace(":", "");
+                        id_mess = id_mess.Replace(" ", "");
+                        SetResponse set = client.Set(@"Messages/" + mess.Sender + "/" + id_mess, mess);
+
                         foreach (KeyValuePair<string, Socket> ct in clientSockets)
                         {
                             string compare = dt[0] + "/" + dt[1];
                             if (compare == ct.Key)
                             {
                                 sendData(ct.Value, "0x011|" + dt[0] + "," + dt[1] + "," + dt[2]);
+                                set = client.Set(@"Messages/" + mess.Sender + "/" + id_mess + "/", mess);
+                                set = client.Set(@"Messages/" + mess.Receiver + "/" + id_mess + "/", mess);
                                 Thread.Sleep(1000);
                                 ct.Value.Send(buffer);
                                 break;
@@ -314,9 +356,36 @@ namespace ChatServer
                     //var downloadUrl = task;
                     byte[] buffer = new byte[handler.ReceiveBufferSize];
                     int bytesReceived = handler.Receive(buffer);
+
+                    string user_send = "";
+                    foreach (KeyValuePair<string, Socket> ct in clientSockets)
+                    {
+                        if (handler == ct.Value)
+                        {
+                            string[] usr = ct.Key.Split('/');
+                            user_send = usr[1];
+                            break;
+                        }
+                    }
+
                     if (input[1].Substring(0, 6) == "public")
                     {
                         string[] dt = input[1].Split(',');
+                       
+
+                        Message mess = new Message()
+                        {
+                            Sender = user_send,
+                            Receiver = "public",
+                            DateSend = dt[1],
+                            Text = dt[2]
+                        };
+
+                        string id_mess = mess.DateSend.Replace("/", "");
+                        id_mess = id_mess.Replace(":", "");
+                        id_mess = id_mess.Replace(" ", "");
+                        SetResponse set = client.Set(@"Messages/" + mess.Sender + "/" + id_mess, mess);
+
                         foreach (KeyValuePair<string, Socket> ct in clientSockets)
                         {
                             if (handler == ct.Value)
@@ -324,7 +393,8 @@ namespace ChatServer
                                 continue;
                             }
                             string[] usr = ct.Key.Split('/');
-                            sendData(ct.Value, "0x012|" + usr[1] + "," + dt[1] + "," + dt[2]);
+                            sendData(ct.Value, "0x012|" + user_send + "," + dt[1] + "," + dt[2] + "," + "public");
+                            set = client.Set(@"Messages/" + usr[0] + "/" + id_mess + "/", mess);
                             Thread.Sleep(1000);
                             ct.Value.Send(buffer);
                         }
@@ -332,12 +402,26 @@ namespace ChatServer
                     else
                     {
                         string[] dt = input[1].Split(',');
+                        Message mess = new Message()
+                        {
+                            Sender = user_send,
+                            Receiver = dt[0],
+                            DateSend = dt[2],
+                            Text = dt[3]
+                        };
+
+                        string id_mess = mess.DateSend.Replace("/", "");
+                        id_mess = id_mess.Replace(":", "");
+                        id_mess = id_mess.Replace(" ", "");
+                        SetResponse set = client.Set(@"Messages/" + mess.Sender + "/" + id_mess, mess);
                         foreach (KeyValuePair<string, Socket> ct in clientSockets)
                         {
                             string compare = dt[0] + "/" + dt[1];
                             if (compare == ct.Key)
                             {
-                                sendData(ct.Value, "0x012|" + dt[1] + "," + dt[2] + "," + dt[3]);
+                                sendData(ct.Value, "0x012|" + dt[1] + "," + dt[2] + "," + dt[3] + "," + "private");
+                                set = client.Set(@"Messages/" + mess.Sender + "/" + id_mess + "/", mess);
+                                set = client.Set(@"Messages/" + mess.Receiver + "/" + id_mess + "/", mess);
                                 Thread.Sleep(1000);
                                 ct.Value.Send(buffer);
                                 break;

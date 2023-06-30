@@ -35,14 +35,14 @@ namespace ChatClient
         {
             byte[] buffer = new byte[clientSocket.ReceiveBufferSize];
             int bytesReceived = clientSocket.Receive(buffer);
-            string data = Encoding.ASCII.GetString(buffer, 0, bytesReceived);
+            string data = Encoding.UTF8.GetString(buffer, 0, bytesReceived);
             return data;
         }
 
         void sendData(Socket clientSocket, string data)
         {
             byte[] buffer;
-            buffer = Encoding.ASCII.GetBytes(data);
+            buffer = Encoding.UTF8.GetBytes(data);
             clientSocket.Send(buffer);
         }
 
@@ -119,7 +119,8 @@ namespace ChatClient
                         if(mess.Receiver == "public")
                         {
                             string name = findDisplayName(mess.Sender);
-                            ChatRoom.AppendText("n[Public] from " + name + ": " + mess.Text);
+                            
+                            ChatRoom.AppendText("\n[Public] from " + name + ": " + mess.Text);
                             ChatRoom.AppendText("\n" + mess.DateSend);
                         } else
                         {
@@ -194,11 +195,22 @@ namespace ChatClient
                         //}
                         //while (bytesRead > 0);
                     }
-                    ChatRoom.Invoke(new Action(() =>
+                    if(dt[3] == "public")
                     {
-                        ChatRoom.AppendText("\n");
-                        ChatRoom.AppendText(dt[1] + "| " + dt[0] + ": " + dt[2]);
-                    }));
+                        ChatRoom.Invoke(new Action(() =>
+                        {
+                            ChatRoom.AppendText("\n[Public] from " + dt[0] + ": receive file (" + dt[2] + ")");
+                            ChatRoom.AppendText("\n" + dt[1]);
+                        }));
+                    } else
+                    {
+                        ChatRoom.Invoke(new Action(() =>
+                        {
+                            ChatRoom.AppendText("\n[Private] from " + dt[0] + ": receiver file(" + dt[2] + ")");
+                            ChatRoom.AppendText("\n" + dt[1]);
+                        }));
+                    }
+                    
                     
                 } else if(input[0] == "0x014")
                 {
@@ -250,6 +262,7 @@ namespace ChatClient
         }
 
         string receiver = "public";
+        int check = 0;
 
         private void ButtonSend_Click(object sender, EventArgs e)
         {
@@ -293,8 +306,15 @@ namespace ChatClient
                     Text = data
                 };
 
-                ChatRoom.AppendText("\n[Private] to "+ receiver + ": " + mess.Text);
-                ChatRoom.AppendText("\n" + mess.DateSend);
+                int currentPosition = ChatRoom.SelectionStart;
+                string text = "\n[Private] to "+ receiver + ": " + mess.Text + "\n" + mess.DateSend;
+                int selectionLength = text.Length;
+                ChatRoom.SelectionColor = Color.FromArgb(0, 255, 255);
+                ChatRoom.SelectedText = text;
+                ChatRoom.SelectionColor = Color.White;
+
+                //ChatRoom.AppendText("\n[Private] to "+ receiver + ": " + mess.Text);
+                //ChatRoom.AppendText("\n" + mess.DateSend);
                 //ListViewItem item = new ListViewItem(mess.DateSend + "| " + mess.Text);
                 //ChatRoom.Items.Add(item);
 
@@ -313,8 +333,15 @@ namespace ChatClient
                     Text = data
                 };
 
-                ChatRoom.AppendText("\n[Public] to all user: " + mess.Text);
-                ChatRoom.AppendText("\n" + mess.DateSend);
+                int currentPosition = ChatRoom.SelectionStart;
+                string text = "\n[Public] to all user: " + mess.Text + "\n" + mess.DateSend;
+                int selectionLength = text.Length;
+                ChatRoom.SelectionColor = Color.FromArgb(0, 255, 255);
+                ChatRoom.SelectedText = text;
+                ChatRoom.SelectionColor = Color.White;
+
+                //ChatRoom.AppendText("\n[Public] to all user: " + mess.Text);
+                //ChatRoom.AppendText("\n" + mess.DateSend);
 
                 //ListViewItem item = new ListViewItem(mess.DateSend + "| " + mess.Text);
                 //ChatRoom.Items.Add(item);
@@ -322,9 +349,9 @@ namespace ChatClient
                 string messData = "0x007|" + JsonConvert.SerializeObject(mess);
                 sendData(clientSocket, messData);
             }
+            MessageBox.Text = "";
         }
 
-        int check = 0;
 
         private void toUser_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -380,10 +407,16 @@ namespace ChatClient
 
                 if (checkPublic.Checked == true)
                 {
-                    ChatRoom.AppendText("\n[Public] to all user: ");
+                    int currentPosition = ChatRoom.SelectionStart;
+                    string text = "\n[Public] to all user: ";
+                    int selectionLength = text.Length;
+                    ChatRoom.SelectionColor = Color.FromArgb(0, 255, 255);
+                    ChatRoom.SelectedText = text;
+                    //ChatRoom.AppendText("\n[Public] to all user: ");
                     Clipboard.SetImage(image);
                     ChatRoom.Paste();
                     ChatRoom.AppendText("\n" + date);
+                    ChatRoom.SelectionColor = Color.White;
                     sendData(clientSocket, "0x011|public," + date);
                     Thread.Sleep(1000);
                 } else if(checkPrivate.Checked == true)
@@ -398,10 +431,16 @@ namespace ChatClient
                     {
                         if(ct.Value == receiver)
                         {
-                            ChatRoom.AppendText("\n[Private] to " + receiver + ": ");
+                            int currentPosition = ChatRoom.SelectionStart;
+                            string text = "\n[Private] to " + receiver + ": ";
+                            int selectionLength = text.Length;
+                            ChatRoom.SelectionColor = Color.FromArgb(0, 255, 255);
+                            ChatRoom.SelectedText = text;
+                            //ChatRoom.AppendText("\n[Private] to " + receiver + ": ");
                             Clipboard.SetImage(image);
                             ChatRoom.Paste();
                             ChatRoom.AppendText("\n" + date);
+                            ChatRoom.SelectionColor = Color.White;
                             sendData(clientSocket, "0x011|" + ct.Key + "," + ct.Value + "," + date);
                             break;
                         }
@@ -413,6 +452,45 @@ namespace ChatClient
                 count = 0;
                 ls.SelectedItems.Clear();
             }
+        }
+
+        public void sendImage(Image image)
+        {
+            DateTime now = DateTime.Now;
+            string date = now.ToString("dd/MM/yyyy HH:mm:ss");
+
+            if (checkPublic.Checked == true)
+            {
+                ChatRoom.AppendText("\n[Public] to all user: ");
+                Clipboard.SetImage(image);
+                ChatRoom.Paste();
+                ChatRoom.AppendText("\n" + date);
+                sendData(clientSocket, "0x011|public," + date);
+                Thread.Sleep(1000);
+            }
+            else if (checkPrivate.Checked == true)
+            {
+                if (check == 0)
+                {
+                    System.Windows.Forms.MessageBox.Show("Chua chon nguoi de gui");
+                    return;
+                }
+
+                foreach (KeyValuePair<string, string> ct in users)
+                {
+                    if (ct.Value == receiver)
+                    {
+                        ChatRoom.AppendText("\n[Private] to " + receiver + ": ");
+                        Clipboard.SetImage(image);
+                        ChatRoom.Paste();
+                        ChatRoom.AppendText("\n" + date);
+                        sendData(clientSocket, "0x011|" + ct.Key + "," + ct.Value + "," + date);
+                        break;
+                    }
+                }
+                Thread.Sleep(1000);
+            }
+            sendImage(clientSocket, image);
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -433,10 +511,25 @@ namespace ChatClient
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 selectedFiles = openFileDialog.FileNames;
-                string[] name_file = selectedFiles[0].Split("\\");
+                //string[] name_file = selectedFiles[0].Split("\\");
+                //string type = name_file[name_file.Length - 1].Substring(name_file[name_file.Length - 1].Length - 4);
+                //if (type == ".png")
+                //{
+                //    foreach(string file in selectedFiles)
+                //    {
+                //        Image image = Image.FromFile(file);
+                //        sendImage(image);
+                //        Thread.Sleep(2000);
+                //    }
+                //    return;
+                //}
 
-                // Xử lý các tệp đã chọn ở đây
-                System.Windows.Forms.MessageBox.Show(name_file[name_file.Length - 1]);
+
+                //// Xử lý các tệp đã chọn ở đây
+                //System.Windows.Forms.MessageBox.Show(type);
+            } else
+            {
+                return;
             }
             //return;
 
@@ -469,7 +562,25 @@ namespace ChatClient
                 }
                 byte[] fileData = File.ReadAllBytes(file);
                 clientSocket.Send(fileData);
-                ChatRoom.AppendText("\nYou send file");
+                if(checkPublic.Checked == true)
+                {
+                    int currentPosition = ChatRoom.SelectionStart;
+                    string text = "\n[Public] to all user: you sent file " + name_file[name_file.Length - 1] + "\n" + now;
+                    int selectionLength = text.Length;
+                    ChatRoom.SelectionColor = Color.FromArgb(0, 255, 255);
+                    ChatRoom.SelectedText = text;
+                    ChatRoom.SelectionColor = Color.White;
+                    //ChatRoom.AppendText("\n[Public] to all user: you sent file " + name_file[name_file.Length - 1]);
+                } else
+                {
+                    int currentPosition = ChatRoom.SelectionStart;
+                    string text = "\n[Private] to " + receiver + ": you sent file" + name_file[name_file.Length - 1] + "\n" + now;
+                    int selectionLength = text.Length;
+                    ChatRoom.SelectionColor = Color.FromArgb(0, 255, 255);
+                    ChatRoom.SelectedText = text;
+                    ChatRoom.SelectionColor = Color.White;
+                    //ChatRoom.AppendText("\n[Private] to " + receiver + ": you sent file" + name_file[name_file.Length - 1]);
+                }
                 //byte[] buffer = new byte[1024];
                 //using (FileStream stream = new FileStream(file, FileMode.Open))
                 //{
@@ -489,17 +600,20 @@ namespace ChatClient
         {
             if(count1 == 0)
             {
-                listSetting.Show();
+                changePassword.Visible = true;
+                historyMessage.Visible = true;
+
                 count1 = 1;
             } else
             {
-                listSetting.Hide();
+                changePassword.Visible = false;
+                historyMessage.Visible = false;
+
                 count1 = 0;
 
             }
         }
 
-        int countSetting = 0;
         int countHistory = 0;
 
         private void listSetting_SelectedIndexChanged(object sender, EventArgs e)
@@ -543,21 +657,62 @@ namespace ChatClient
 
         private void button2_Click(object sender, EventArgs e)
         {
+            label6.Visible = false;
+            label7.Visible = false;
             string new_password = textNewPassword.Text;
             if(new_password == "")
             {
-                System.Windows.Forms.MessageBox.Show("Please enter new password!");
+                //System.Windows.Forms.MessageBox.Show("Please enter new password!");
+                label7.Visible = true;
                 return;
             }
 
             sendData(clientSocket, "0x013|" + username + "/" + new_password);
-            System.Windows.Forms.MessageBox.Show("Reset Password Success!");
+            //System.Windows.Forms.MessageBox.Show("Reset Password Success!");
+            label6.Visible = true;
             panelResetPassword.Hide();
         }
 
         private void label4_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        int countSetting = 0;
+        private void changePassword_Click(object sender, EventArgs e)
+        {
+            if (countSetting == 0)
+            {
+                countSetting = 1;
+                panelResetPassword.Show();
+            }
+            else
+            {
+                countSetting = 0;
+                panelResetPassword.Hide();
+                return;
+            }
+        }
+
+        private void historyMessage_Click(object sender, EventArgs e)
+        {
+            if (countHistory == 0)
+            {
+                countHistory = 1;
+                panelHistory.Show();
+                sendData(clientSocket, "0x014|" + username);
+            }
+            else
+            {
+                countHistory = 0;
+                panelHistory.Hide();
+                return;
+            }
         }
     }
 }

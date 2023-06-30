@@ -18,6 +18,8 @@ namespace ChatClient
         public LoginForm()
         {
             InitializeComponent();
+            PasswordTbox.UseSystemPasswordChar = true;
+
         }
 
         // Thiết lập địa chỉ Ip và Port để kết nối đến server
@@ -48,12 +50,24 @@ namespace ChatClient
 
         private void LoginButton_Click(object sender, EventArgs e)
         {
+            label3.Visible = false;
+            label4.Visible = false;
+            label7.Visible = false;
+            label8.Visible = false;
+
             // Kiểm tra xem người dùng có để trống Username hay Password
-            if(UsernameTbox.Text == "" || PasswordTbox.Text == "")
+            if (UsernameTbox.Text == "")
             {
-                MessageBox.Show("Please fill Username and Password!");
                 UsernameTbox.Text = "";
                 PasswordTbox.Text = "";
+                label7.Visible = true;
+                return;
+            }
+            if (PasswordTbox.Text == "")
+            {
+                UsernameTbox.Text = "";
+                PasswordTbox.Text = "";
+                label8.Visible = true;
                 return;
             }
 
@@ -75,21 +89,56 @@ namespace ChatClient
 
             if (response == "0x000")
             {
-                MessageBox.Show("Login Successfully!");
+                //MessageBox.Show("Login Successfully!");
                 ChatApplication chat = new ChatApplication(clientSocket, UsernameTbox.Text, name);
                 chat.Show();
                 this.Hide();
             } else if(response == "0x003")
             {
-                MessageBox.Show("Username not exist!");
+                //MessageBox.Show("Username not exist!");
+                label3.Visible = true;
+                UsernameTbox.Text = "";
+                PasswordTbox.Text = "";
                 clientSocket.Close();
 
             }
             else if(response == "0x004")
              {
-                MessageBox.Show("Password is wrong!");
+                //MessageBox.Show("Password is wrong!");
+                label4.Visible = true;
+                UsernameTbox.Text = "";
+                PasswordTbox.Text = "";
                 clientSocket.Close();
 
+            }
+        }
+
+        private void LoginForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.Dispose();
+            //foreach (Form form in Application.OpenForms)
+            //{
+            //    form.Dispose();
+            //}
+        }
+
+        int countEye = 1;
+
+        private void pictureBox3_Click(object sender, EventArgs e)
+        {
+            if(countEye == 1)
+            {
+                countEye = 0;
+                PasswordTbox.UseSystemPasswordChar = false;
+            } else
+            {
+                countEye = 1;
+                PasswordTbox.UseSystemPasswordChar = true;
             }
         }
     }

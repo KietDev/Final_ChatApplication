@@ -45,10 +45,48 @@ namespace ChatClient
 
         private void RegistrationButton_Click(object sender, EventArgs e)
         {
+            label7.Visible = false;
+            label8.Visible = false;
+            label9.Visible = false;
+            label10.Visible = false;
+            label11.Visible = false;
+            label12.Visible = false;
+            label13.Visible = false;
+            label14.Visible = false;
+            label15.Visible = false;
+
+            if (UsernameTbox.Text == "")
+            {
+                label11.Visible = true;
+                return;
+            }
+
+            if(PasswordTbox.Text == "")
+            {
+                label12.Visible = true;
+            }
+
+            if(ConfirmPasswordTbox.Text == "")
+            {
+                label13.Visible = true;
+            }
+
+            if(DisplayNameTbox.Text == "")
+            {
+                label14.Visible = true;
+            }
+
+            if(EmailTbox.Text == "")
+            {
+                label15.Visible = true;
+            }
+
             // Kiểm tra người dùng xác thực đúng mật khẩu hay không
             if(PasswordTbox.Text != ConfirmPasswordTbox.Text)
             {
-                MessageBox.Show("Confirm password not match Password!");
+                //MessageBox.Show("Confirm password not match Password!");
+                label8.Visible = true;
+                PasswordTbox.Text = "";
                 ConfirmPasswordTbox.Text = "";
                 return;
             }
@@ -77,19 +115,57 @@ namespace ChatClient
             string response = receiveData(clientSocket);
             if (response == "0x001")
             {
-                MessageBox.Show("Register Successfull!");
-                LoginForm login_form = new LoginForm();
-                this.Close();
-                login_form.Show();
+                //MessageBox.Show("Register Successfull!");
+                label9.Visible = true;
+                
             } else if (response == "0x006") {
-                MessageBox.Show("Username exist!");
+                //MessageBox.Show("Username exist!");
+                label7.Visible = true;
                 UsernameTbox.Text = "";
             } else
             {
-                MessageBox.Show("Register Unseccessfull!");
+                //MessageBox.Show("Register Unseccessfull!");
+                label10.Visible = true;
             }
             clientSocket.Shutdown(SocketShutdown.Both);
             clientSocket.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            LoginForm login_form = new LoginForm();
+            this.Close();
+            login_form.Show();
+        }
+
+        int countEyePass = 1;
+        private void pictureBox3_Click(object sender, EventArgs e)
+        {
+            if (countEyePass == 1)
+            {
+                countEyePass = 0;
+                PasswordTbox.UseSystemPasswordChar = false;
+            }
+            else
+            {
+                countEyePass = 1;
+                PasswordTbox.UseSystemPasswordChar = true;
+            }
+        }
+
+        int countEyecon = 1;
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            if (countEyecon == 1)
+            {
+                countEyecon = 0;
+                PasswordTbox.UseSystemPasswordChar = false;
+            }
+            else
+            {
+                countEyecon = 1;
+                PasswordTbox.UseSystemPasswordChar = true;
+            }
         }
     }
 }
